@@ -21,7 +21,9 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "dockerbuild": "docker build -t k8s-frontend ."
+    "dockerbuild": "docker build -t k8s-frontend .",
+    "dockertag": "docker tag k8s-backend-worker:latest ocaks.azurecr.io/k8s/backend-worker:latest",
+    "dockerpush": "yarn dockertag && docker push ocaks.azurecr.io/k8s/backend-worker:latest"
   },
   "eslintConfig": {
     "extends": [

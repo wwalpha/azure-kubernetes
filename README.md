@@ -3,7 +3,9 @@
 ## Prerequisite
 
 1. Azure CLI
-2. Ubuntu Linux
+2. Ubuntu OS
+3. Node.js
+4. yarn
 
 ## Create Azure Resources
 

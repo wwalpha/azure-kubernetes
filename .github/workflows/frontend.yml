@@ -1,0 +1,58 @@
+name: frontend
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - frontend/**
+      - manifests/frontend/**
+      - .github/workflows/frontend.yml
+
+env:
+  CLUSTER_NAME: onecloud-aks
+  CLUSTER_RESOURCE_GROUP: RG-AKS
+  REGISTRY_NAME: ocaks
+  DOCKER_APP_NAME: k8s-frontend
+  NAMESPACE: onecloud  
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-18.04
+
+    steps:
+      # Checkout
+      - uses: actions/checkout@v2
+
+      # Connect to Azure Container registry (ACR)
+      - uses: azure/docker-login@v1
+        with:
+          login-server: ${{ env.REGISTRY_NAME }}.azurecr.io
+          username: ${{ secrets.REGISTRY_USERNAME }} 
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      # Container build and push to a Azure Container registry (ACR)
+      - working-directory: frontend
+        run: |
+          docker build . -t ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.DOCKER_APP_NAME }}:${{ github.sha }}
+          docker push ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.DOCKER_APP_NAME }}:${{ github.sha }}
+
+      # install kubectl
+      - uses: azure/setup-kubectl@v1
+
+      # Set the target Azure Kubernetes Service (AKS) cluster. 
+      - uses: azure/aks-set-context@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          cluster-name: ${{ env.CLUSTER_NAME }}
+          resource-group: ${{ env.CLUSTER_RESOURCE_GROUP }}
+
+      # Deploy app to AKS
+      - uses: azure/k8s-deploy@v1
+        with:
+          manifests: |
+            manifests/frontend/deployment.yml
+            manifests/frontend/service.yml
+          images: ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.DOCKER_APP_NAME }}:${{ github.sha }}
+          namespace: ${{ env.NAMESPACE }}

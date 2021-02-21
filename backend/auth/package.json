@@ -3,8 +3,7 @@
     "start": "node index.js",
     "build": "tsc",
     "update": "npm run dockerbuild & npm run dockertag & npm run dockerpush",
-    "dockerbuild": "docker build -t k8s-backend-auth .",
-    "dockertag": "docker tag k8s-backend-auth:latest ocaks.azurecr.io/k8s/backend-auth:latest",
+    "dockerbuild": "docker build -t ocaks.azurecr.io/k8s/backend-auth:latest .",
     "dockerpush": "docker push ocaks.azurecr.io/k8s/backend-auth:latest"
   },
   "devDependencies": {
