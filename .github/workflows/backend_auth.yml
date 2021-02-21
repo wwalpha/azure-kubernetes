@@ -1,0 +1,58 @@
+name: backend_auth
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - backend/auth/**
+      - manifests/backend_auth/**
+      - .github/workflows/backend_auth.yml
+
+env:
+  CLUSTER_NAME: onecloud-aks
+  CLUSTER_RESOURCE_GROUP: RG-AKS
+  REGISTRY_NAME: ocaks
+  DOCKER_APP_NAME: k8s/backend-auth
+  NAMESPACE: onecloud  
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-18.04
+
+    steps:
+      # Checkout
+      - uses: actions/checkout@v2
+
+      # Connect to Azure Container registry (ACR)
+      - uses: azure/docker-login@v1
+        with:
+          login-server: ${{ env.REGISTRY_NAME }}.azurecr.io
+          username: ${{ secrets.REGISTRY_USERNAME }} 
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      # Container build and push to a Azure Container registry (ACR)
+      - working-directory: backend/auth
+        run: |
+          docker build . -t ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.DOCKER_APP_NAME }}:${{ github.sha }}
+          docker push ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.DOCKER_APP_NAME }}:${{ github.sha }}
+
+      # install kubectl
+      - uses: azure/setup-kubectl@v1
+
+      # Set the target Azure Kubernetes Service (AKS) cluster. 
+      - uses: azure/aks-set-context@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          cluster-name: ${{ env.CLUSTER_NAME }}
+          resource-group: ${{ env.CLUSTER_RESOURCE_GROUP }}
+
+      # Deploy app to AKS
+      - uses: azure/k8s-deploy@v1
+        with:
+          manifests: |
+            manifests/backend_auth/deployment.yml
+            manifests/backend_auth/service.yml
+          images: ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.DOCKER_APP_NAME }}:${{ github.sha }}
+          namespace: ${{ env.NAMESPACE }}
