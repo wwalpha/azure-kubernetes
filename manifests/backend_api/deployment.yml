@@ -2,22 +2,22 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: onecloud
-  name: k8s-frontend
+  name: k8s-backend
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: k8s-frontend
+      app: k8s-backend
   template:
     metadata:
       labels:
-        app: k8s-frontend
+        app: k8s-backend
     spec:
       containers:
-        - name: k8s-frontend
-          image: ocaks.azurecr.io/k8s/frontend:latest
+        - name: k8s-backend
+          image: ocaks.azurecr.io/k8s/backend-api:latest
           ports:
-          - containerPort: 80
+          - containerPort: 8080
           resources:
             limits:
               cpu: 250m

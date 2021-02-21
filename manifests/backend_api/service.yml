@@ -2,10 +2,10 @@ apiVersion: v1
 kind: Service
 metadata:
   namespace: onecloud
-  name: k8s-frontend
+  name: k8s-backend
 spec:
   type: ClusterIP
   ports:
-    - port: 80
+    - port: 8080
   selector:
-    app: k8s-frontend
+    app: k8s-backend

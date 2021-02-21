@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: onecloud
+  name: k8s-backend-worker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: k8s-backend-worker
+  template:
+    metadata:
+      labels:
+        app: k8s-backend-worker
+    spec:
+      containers:
+        - name: k8s-backend-worker
+          image: ocaks.azurecr.io/k8s/backend-worker:latest
+          ports:
+          - containerPort: 8080
+          resources:
+            limits:
+              cpu: 250m
+              memory: 256Mi
+          env:
+            # set env variable POD_ID from container information
+            - name: POD_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+      imagePullSecrets:
+        - name: acr-auth
+  
