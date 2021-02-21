@@ -13,7 +13,7 @@ env:
   CLUSTER_NAME: onecloud-aks
   CLUSTER_RESOURCE_GROUP: RG-AKS
   REGISTRY_NAME: ocaks
-  DOCKER_APP_NAME: k8s-frontend
+  DOCKER_APP_NAME: k8s/frontend
   NAMESPACE: onecloud  
 
 jobs:
