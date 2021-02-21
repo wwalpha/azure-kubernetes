@@ -1,4 +1,33 @@
-# azure-kubernetes
+# Kubernetes on Azure
+
+## Prerequisite
+
+1. Azure CLI
+2. Ubuntu Linux
+
+## Create Azure Resources
+
+```sh
+
+```
+
+## Initialize Kubernetes
+
+```
+export AKS_NAMESPACE=onecloud
+export ACR_REPO=ocaks.azurecr.io
+export ACR_PASSWORD=password
+export ACR_EMAIL=kkk@kkk.com
+
+# create new namespace
+kubectl create namespace $NAMESPACE
+
+# set default namespace
+kubectl config set-context --current --namespace=$NAMESPACE
+
+# add acr secret
+kubectl create secret docker-registry acr-auth --docker-server $ACR_REPO --docker-username ocaks --docker-password $ACR_PASSWORD --docker-email $ACR_EMAIL
+```
 
 ## Installing Helm
 
@@ -33,10 +62,7 @@ kubectl get pods -n istio-system
 
 ## Installing Ingress Controller
 
-```
-# Create a namespace for your ingress resources
-# kubectl create namespace ingress-basic
-
+```sh
 # Add the ingress-nginx repository
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 
@@ -52,38 +78,30 @@ helm install nginx-ingress ingress-nginx/ingress-nginx \
 ## Docker build and push
 
 ```
-export ACR=ocaks
+export ACR_NAME=ocaks
+
+az acr login --name $ACR_NAME
 
 docker build -t k8s-frontend .
-docker tag k8s-frontend:latest $ACR.azurecr.io/k8s/frontend:latest
-
-az acr login --name $ACR
-docker push $ACR.azurecr.io/k8s/frontend:latest
+docker tag k8s-frontend:latest $ACR_NAME.azurecr.io/k8s/frontend:latest
+docker push $ACR_NAME.azurecr.io/k8s/frontend:latest
 ```
 
-## Create Resources
+## Apply Kubernetes Resources
+
+### Apply Ingress Route
+
+```sh
+kubectl apply -f manifests/ingress/ingress.yml
+```
+
+### Apply Other Resources
 
 ```
-export ACR_REPO=ocaks.azurecr.io
-export AKS_NAMESPACE=onecloud
-export DOCKER_PASSWORD=password
-export DOCKER_EMAIL=kkk@kkk.com
-
-# create new namespace
-kubectl create namespace $NAMESPACE
-
-# set default namespace
-kubectl config set-context --current --namespace=$NAMESPACE
-
-# add acr secret
-kubectl create secret docker-registry acr-auth --docker-server $ACR_REPO --docker-username ocaks --docker-password $DOCKER_PASSWORD --docker-email $DOCKER_EMAIL
-
-# create frontend deployment
-kubectl apply -f frontend/deployment.yml
-
-# create frontend service
-kubectl apply -f frontend/service.yml
-
+kubectl apply -f manifests/frontend
+kubectl apply -f manifests/backend_api
+kubectl apply -f manifests/backend_auth
+kubectl apply -f manifests/backend_worker
 ```
 
 ## Trouble Shooting
