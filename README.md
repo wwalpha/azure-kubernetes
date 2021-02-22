@@ -1,5 +1,8 @@
 # Kubernetes on Azure
 
+## Architecture
+![image](./docs/architecture.png)
+
 ## Prerequisite
 
 1. Azure CLI
