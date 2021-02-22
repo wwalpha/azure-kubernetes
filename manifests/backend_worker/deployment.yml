@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: k8s-backend-worker
-          image: ocaks.azurecr.io/k8s/backend-worker:latest
+          image: k8srepo.azurecr.io/k8s/backend-worker:latest
           ports:
           - containerPort: 8080
           resources:

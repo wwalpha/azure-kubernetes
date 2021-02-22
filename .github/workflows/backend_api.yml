@@ -11,8 +11,8 @@ on:
 
 env:
   CLUSTER_NAME: onecloud-aks
-  CLUSTER_RESOURCE_GROUP: RG-AKS
-  REGISTRY_NAME: ocaks
+  CLUSTER_RESOURCE_GROUP: RG_AKS
+  REGISTRY_NAME: k8srepo
   DOCKER_APP_NAME: k8s/backend-api
   NAMESPACE: onecloud  
 

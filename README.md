@@ -7,28 +7,51 @@
 3. Node.js
 4. yarn
 
-## Create Azure Resources
+## Initialize Azure Resources
 
 ```sh
+export RESOURCE_GROUP=RG_AKS
+export AKS_CLUSTER=aks-cluster
+export ACR_NAME=k8srepo
 
+# create resource group
+az group create --name $RESOURCE_GROUP --location japaneast
+
+# create kubernetes cluster
+az aks create --resource-group $RESOURCE_GROUP --name $AKS_CLUSTER --node-count 1 --enable-addons monitoring --generate-ssh-keys
+
+# create container registry
+az acr create --resource-group $RESOURCE_GROUP --name $ACR_NAME --sku Basic
+
+# enable admin access key
+az acr update --name $ACR_NAME --admin-enabled true
 ```
 
-## Initialize Kubernetes
+## Initialize Azure Kubernetes Service
 
-```
+```sh
+export RESOURCE_GROUP=RG_AKS
+export AKS_CLUSTER=aks-cluster
 export AKS_NAMESPACE=onecloud
-export ACR_REPO=ocaks.azurecr.io
-export ACR_PASSWORD=password
+export ACR_NAME=k8srepo
+export ACR_REPO=$ACR_NAME.azurecr.io
+export ACR_PASSWORD=$(az acr credential show --name $ACR_NAME --query passwords[0].value)
 export ACR_EMAIL=kkk@kkk.com
 
+# install kubectl
+az aks install-cli
+
+# get kubernetes credentials
+az aks get-credentials --resource-group $RESOURCE_GROUP --name $AKS_CLUSTER
+
 # create new namespace
-kubectl create namespace $NAMESPACE
+kubectl create namespace $AKS_NAMESPACE
 
 # set default namespace
-kubectl config set-context --current --namespace=$NAMESPACE
+kubectl config set-context --current --namespace=$AKS_NAMESPACE
 
 # add acr secret
-kubectl create secret docker-registry acr-auth --docker-server $ACR_REPO --docker-username ocaks --docker-password $ACR_PASSWORD --docker-email $ACR_EMAIL
+kubectl create secret docker-registry acr-auth --docker-server $ACR_REPO --docker-username $ACR_NAME --docker-password $ACR_PASSWORD --docker-email $ACR_EMAIL
 ```
 
 ## Installing Helm
@@ -79,17 +102,30 @@ helm install nginx-ingress ingress-nginx/ingress-nginx \
 
 ## Docker build and push
 
-```
-export ACR_NAME=ocaks
+```sh
+export ACR_NAME=k8srepo
 
+# acr login
 az acr login --name $ACR_NAME
 
-docker build -t k8s-frontend .
-docker tag k8s-frontend:latest $ACR_NAME.azurecr.io/k8s/frontend:latest
+# frontend (frontend folder)
+docker build -t $ACR_NAME.azurecr.io/k8s/frontend:latest .
 docker push $ACR_NAME.azurecr.io/k8s/frontend:latest
+
+# backend-api (backend/api folder)
+docker build -t $ACR_NAME.azurecr.io/k8s/backend-api:latest .
+docker push $ACR_NAME.azurecr.io/k8s/backend-api:latest
+
+# backend-auth (backend/auth folder)
+docker build -t $ACR_NAME.azurecr.io/k8s/backend-auth:latest .
+docker push $ACR_NAME.azurecr.io/k8s/backend-auth:latest
+
+# backend-worker (backend/worker folder)
+docker build -t $ACR_NAME.azurecr.io/k8s/backend-worker:latest .
+docker push $ACR_NAME.azurecr.io/k8s/backend-worker:latest
 ```
 
-## Apply Kubernetes Resources
+## Deploy Kubernetes Resources
 
 ### Apply Ingress Route
 
@@ -108,7 +144,7 @@ kubectl apply -f manifests/backend_worker
 
 ## Trouble Shooting
 
-```
+```sh
 # get all events
 kubectl get events --all-namespaces
 
@@ -120,19 +156,4 @@ kubectl logs xxx-pod
 
 # describe pod event
 kubectl describe xxx-pod
-```
-
-## Tips
-
-```
-export RESOURCE_GROUP=RG-AKS
-export CLUSTER_NAME=onecloud-aks
-
-# get credential
-az aks get-credentials --name $CLUSTER_NAME --resource-group $RESOURCE_GROUP
-
-# create 'kubectl' alias
-alias k='kubectl'
-
-k get pods
 ```

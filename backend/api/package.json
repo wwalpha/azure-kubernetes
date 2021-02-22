@@ -2,8 +2,8 @@
   "scripts": {
     "start": "node index.js",
     "build": "tsc",
-    "dockerbuild": "docker build -t ocaks.azurecr.io/k8s/backend-api .",
-    "dockerpush": "docker push ocaks.azurecr.io/k8s/backend-api:latest"
+    "dockerbuild": "docker build -t k8srepo.azurecr.io/k8s/backend-api .",
+    "dockerpush": "docker push k8srepo.azurecr.io/k8s/backend-api:latest"
   },
   "devDependencies": {
     "@types/express": "^4.17.11",
