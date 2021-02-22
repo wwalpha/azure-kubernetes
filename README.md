@@ -156,4 +156,16 @@ kubectl logs xxx-pod
 
 # describe pod event
 kubectl describe xxx-pod
+
+# confirm service name use temp container
+kubectl run --image=centos:6 --restart=Never --rm -i testpod -- dig -x 10.0.98.204
+```
+
+## Tips
+
+```sh
+export RESOURCE_GROUP=RG_AKS
+
+# create azure credential for github actions
+az ad sp create-for-rbac --name "http://k8s" --role contributor --scopes /subscriptions/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXX/resourceGroups/$RESOURCE_GROUP --sdk-auth
 ```
